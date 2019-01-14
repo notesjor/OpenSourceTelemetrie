@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using OpenSourceTelemetrieData.Model.Types.OpenSourceTelemetrieData.Model;
 
 namespace OpenSourceTelemetrieData.Model.Types
 {

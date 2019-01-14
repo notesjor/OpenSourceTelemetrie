@@ -1,7 +1,9 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
+using OpenSourceTelemetrieData.Helper;
 using OpenSourceTelemetrieData.Model.Types;
 using Tfres;
 
@@ -10,8 +12,7 @@ namespace OpenSourceTelemetrieServer
   class Program
   {
     private static readonly int _max = 5 * 1024 * 1024;
-    private static LocationEntry[] _db;
-
+    
     static void Main(string[] args)
     {
       var ip = GetIp(args);
@@ -19,13 +20,10 @@ namespace OpenSourceTelemetrieServer
 
       Console.Write($"OpenSourceTelemetrieServer http://{ip}:{port}...");
 
-      LoadIpCountryDatabase();
-
       if (Directory.Exists("data"))
         Directory.CreateDirectory("data");
 
       var server = new Server(ip, port, DefaultRoute);
-      server.AddEndpoint(HttpVerb.POST, "/locate/", GetLocation);
       server.AddEndpoint(HttpVerb.POST, "/public/", SendAppcrash);
       server.AddEndpoint(HttpVerb.POST, "/telemetrie/", SendTelemetrie);
 
@@ -38,20 +36,6 @@ namespace OpenSourceTelemetrieServer
       }
 
       server.Dispose();
-    }
-
-    private static HttpResponse GetLocation(HttpRequest arg)
-    {
-
-    }
-
-    private static void LoadIpCountryDatabase()
-    {
-      using (var fs = new FileStream("dbip.bin", FileMode.Open, FileAccess.Read))
-      {
-        var serializer = new BinaryFormatter();
-        _db = serializer.Deserialize(fs) as LocationEntry[];
-      }
     }
 
     private static HttpResponse DefaultRoute(HttpRequest arg)

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using OpenSourceTelemetrieData.Model.Abstract;
 
 namespace OpenSourceTelemetrieData
 {
@@ -11,7 +12,7 @@ namespace OpenSourceTelemetrieData
 
     public static int AutoflushEventCount { get; set; } = 100;
 
-    public static async void Add(AbstractTelemetrieObject obj)
+    public static async void Add(AbstractEvent obj)
     {
       var task = new Task(() =>
       {
