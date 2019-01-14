@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <SignAssembly>true</SignAssembly>
+    <DelaySign>false</DelaySign>
+    <AssemblyOriginatorKeyFile>ostd.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OpenSourceTelemetrieData\OpenSourceTelemetrieData.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="TFRES.Core">
+      <HintPath>..\..\TfresWebserver\TFRES.Core\bin\Release\netcoreapp2.1\TFRES.Core.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
