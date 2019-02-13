@@ -8,7 +8,33 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Devart.Data.SQLite.Linq" Version="4.8.1644" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Devart.Data.Linq">
+      <HintPath>Devart.Data.Linq</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Model\Db\IpDataContext.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>IpDataContext.lqml</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Model\Db\IpDataContext.lqml">
+      <Generator>DevartLinqToSqlGenerator</Generator>
+      <LastGenOutput>IpDataContext.Designer.cs</LastGenOutput>
+    </None>
   </ItemGroup>
 
 </Project>

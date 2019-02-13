@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type='text/xsl' href='_LinqUpgradeReport_Files/LinqUpgradeReport.xslt'?>
+<LinqUpgradeLog>
+<Properties>
+<Property Name="Solution" Value="C:\Projekte\Kooperationsprojekte\OpenSourceTelemetrie\OpenSourceTelemetrie.sln"></Property>
+<Property Name="Solution File" Value="C:\Projekte\Kooperationsprojekte\OpenSourceTelemetrie"></Property>
+<Property Name="Date" Value="02.02.2019 18:13:12"></Property>
+</Properties>
+<Event ErrorLevel="3" Project="OpenSourceTelemetrieServer" Source="ostd.snk" Description="No need to convert"></Event>
+<Event ErrorLevel="3" Project="OpenSourceTelemetrieServer" Source="Program.cs" Description="No need to convert"></Event>
+
+</LinqUpgradeLog>

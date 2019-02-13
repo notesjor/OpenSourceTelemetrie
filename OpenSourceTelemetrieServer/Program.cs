@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
-using OpenSourceTelemetrieData.Helper;
+using OpenSourceTelemetrieData.Model.Db;
 using OpenSourceTelemetrieData.Model.Types;
 using Tfres;
 
@@ -12,7 +12,8 @@ namespace OpenSourceTelemetrieServer
   class Program
   {
     private static readonly int _max = 5 * 1024 * 1024;
-    
+    private static IpDataContext _context = new IpDataContext("Data Source=ip4.db;");
+
     static void Main(string[] args)
     {
       var ip = GetIp(args);
@@ -51,10 +52,36 @@ namespace OpenSourceTelemetrieServer
       if (arg.PostDataAsByteArray.Length > _max)
         return new HttpResponse(arg, false, 503, null, "text/plain", null);
 
-      var country = "";
-      var city = "";
+      ResolveCountryAndCityName(arg.SourceIp, out var country, out var city);
 
       return StoreData(arg, country, city);
+    }
+
+    private static void ResolveCountryAndCityName(string ip, out string country, out string city)
+    {
+      country = "";
+      city = "";
+
+      if (string.IsNullOrEmpty(ip) || ip.Contains(":"))
+        return;
+
+      var split = ip.Split(new[] {"."}, StringSplitOptions.RemoveEmptyEntries);
+      if (split.Length != 4)
+        return;
+
+      var i = split.Select(byte.Parse).ToArray();
+      var entry = (from x in _context.LocationEntries
+                   where
+                     x.IP1S >= i[0] && i[0] <= x.IP1E &&
+                     x.IP2S >= i[1] && i[1] <= x.IP2E &&
+                     x.IP3S >= i[2] && i[2] <= x.IP3E &&
+                     x.IP4S >= i[3] && i[3] <= x.IP4E
+                   select x).FirstOrDefault();
+      if(entry == null)
+        return;
+
+      country = entry.Country;
+      city = entry.City;
     }
 
     private static HttpResponse StoreData(HttpRequest arg, string country, string city)
