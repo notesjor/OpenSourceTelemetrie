@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AxialisIconCollection>
+  <Name></Name>
+  <Icon>
+    <Name>report-medical-gears</Name>
+    <StockIconName>report-medical.axvi</StockIconName>
+    <StockIconFamily>Axialis Flat Pro 2017</StockIconFamily>
+    <StockIconSet>Medical</StockIconSet>
+    <ColorizeOverlay>#529FBE</ColorizeOverlay>
+    <StockOverlayName>gears.axvi</StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>100</ResourceIDValue>
+    <ResourceID>ID_REPORT-MEDICAL-GEARS</ResourceID>
+  </Icon>
+</AxialisIconCollection>
