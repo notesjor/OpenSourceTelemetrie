@@ -27,6 +27,12 @@ namespace OpenSourceTelemetrieData.Model.Abstract
     [JsonProperty("name")]
     public string Name { get; set; }
 
+    [JsonProperty("country")]
+    public string Country { get; set; }
+
+    [JsonProperty("city")]
+    public string City { get; set; }
+
     [JsonProperty("sessionId")]
     public string SessionId { get; set; }
   }
