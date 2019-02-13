@@ -20,20 +20,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Model\Db\IpDataContext.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>IpDataContext.lqml</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
     <None Update="appsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Model\Db\IpDataContext.lqml">
-      <Generator>DevartLinqToSqlGenerator</Generator>
-      <LastGenOutput>IpDataContext.Designer.cs</LastGenOutput>
+    <None Update="devart.key">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 

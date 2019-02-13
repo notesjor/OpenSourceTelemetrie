@@ -21,10 +21,20 @@ namespace OpenSourceTelemetrieServer
 
       if (!Directory.Exists("data"))
         Directory.CreateDirectory("data");
+      if (!Directory.Exists("data/crashreport"))
+        Directory.CreateDirectory("data/crashreport");
+      if (!Directory.Exists("data/exception"))
+        Directory.CreateDirectory("data/exception");
+      if (!Directory.Exists("data/pageview"))
+        Directory.CreateDirectory("data/pageview");
+      if (!Directory.Exists("data/metric"))
+        Directory.CreateDirectory("data/metric");
 
       var server = new Server(ip, port, DefaultRoute);
-      server.AddEndpoint(HttpVerb.POST, "/public/", SendAppcrash);
-      server.AddEndpoint(HttpVerb.POST, "/telemetrie/", SendTelemetrie);
+      server.AddEndpoint(HttpVerb.POST, "/crashreport/", SendCrashReport);
+      server.AddEndpoint(HttpVerb.POST, "/exception/", SendException);
+      server.AddEndpoint(HttpVerb.POST, "/pageview/", SendPageView);
+      server.AddEndpoint(HttpVerb.POST, "/metric/", SendMetric);
 
       Console.WriteLine("ok!");
       while (true)
@@ -40,23 +50,29 @@ namespace OpenSourceTelemetrieServer
     private static HttpResponse DefaultRoute(HttpRequest arg)
       => new HttpResponse(arg, false, 503, null, "text/plain", null);
 
-    private static HttpResponse SendAppcrash(HttpRequest arg)
-    {
-      return StoreData(arg);
-    }
+    private static HttpResponse SendCrashReport(HttpRequest arg) 
+      => arg.PostDataAsByteArray.Length > _max ? new HttpResponse(arg, false, 503, null, "text/plain", null) : StoreData(arg, "crashreport");
 
-    private static HttpResponse SendTelemetrie(HttpRequest arg)
+    private static HttpResponse SendException(HttpRequest arg) 
+      => arg.PostDataAsByteArray.Length > _max ? new HttpResponse(arg, false, 503, null, "text/plain", null) : StoreData(arg, "exception");
+
+    private static HttpResponse SendPageView(HttpRequest arg) 
+      => arg.PostDataAsByteArray.Length > _max ? new HttpResponse(arg, false, 503, null, "text/plain", null) : StoreData(arg, "pageview");
+
+    private static HttpResponse SendMetric(HttpRequest arg)
+      => arg.PostDataAsByteArray.Length > _max ? new HttpResponse(arg, false, 503, null, "text/plain", null) : StoreData(arg, "metric");
+
+    private static HttpResponse StoreData(HttpRequest arg, string folder)
     {
-      if (arg.PostDataAsByteArray.Length > _max)
+      try
+      {
+        File.WriteAllText($"data/{folder}/{Guid.NewGuid():N}.json", arg.PostDataAsString, Encoding.UTF8);
+        return new HttpResponse(arg, true, 200, null, "text/plain", null);
+      }
+      catch
+      {
         return new HttpResponse(arg, false, 503, null, "text/plain", null);
-
-      return StoreData(arg);
-    }
-
-    private static HttpResponse StoreData(HttpRequest arg)
-    {
-      File.WriteAllText($"data/{Guid.NewGuid():N}.json", arg.PostDataAsString, Encoding.UTF8);
-      return new HttpResponse(arg, true, 200, null, "text/plain", null);
+      }
     }
 
     private static string GetIp(string[] args)

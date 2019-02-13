@@ -8,7 +8,6 @@
   <ItemGroup>
     <ProjectReference Include="..\OpenSourceTelemetrieClient\OpenSourceTelemetrieClient.csproj" />
     <ProjectReference Include="..\OpenSourceTelemetrieData\OpenSourceTelemetrieData.csproj" />
-    <ProjectReference Include="..\OpenSourceTelemetrieServer\OpenSourceTelemetrieServer.csproj" />
   </ItemGroup>
 
 </Project>

@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace OpenSourceTelemetrieData.Model.Types
 {
-  public class BasicException
+  public class Exception
   {
 
     [JsonProperty("assembly")]

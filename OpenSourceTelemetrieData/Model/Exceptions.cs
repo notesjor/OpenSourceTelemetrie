@@ -5,9 +5,9 @@ using OpenSourceTelemetrieData.Model.Types;
 
 namespace OpenSourceTelemetrieData.Model
 {
-  public class Exception : AbstractEvent
+  public class Exceptions : AbstractEvent
   {
-    [JsonProperty("basicException")]
-    public IList<BasicException> BasicException { get; set; }
+    [JsonProperty("children")]
+    public IList<Exception> Children { get; set; }
   }
 }

@@ -1,182 +1,331 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using OpenSourceTelemetrieData.Model;
 using OpenSourceTelemetrieData.Model.Types;
 using Exception = System.Exception;
-using Metric = OpenSourceTelemetrieData.Model.Metric;
 
 namespace OpenSourceTelemetrieClient
 {
-  public static class TelemetrieClient
+  public class TelemetrieClient : IDisposable
   {
-    private static string _url;
-    private static Location _location;
-    private static Device _device;
-    private static string _anonId;
-    private static string _session;
+    private readonly string _anonId;
+    private readonly Device _device;
+    private readonly Queue<Exceptions> _exceptions = new Queue<Exceptions>();
+    private readonly Queue<Metrics> _metrics = new Queue<Metrics>();
+    private readonly Queue<PageView> _pageViews = new Queue<PageView>();
+    private readonly object _queueLock = new object();
+    private Location _location;
+    private readonly string _session;
+    private readonly string _url;
 
     /// <summary>
-    /// Initialize the TelemetrieClient
+    ///   Initialize the TelemetrieClient
     /// </summary>
     /// <param name="anonId">A random anonId - user specific</param>
     /// <param name="ip">IP where you want to send the telemetrie data</param>
     /// <param name="port">Open Network Port</param>
     /// <param name="country">Country of the user</param>
     /// <param name="city">City of the user</param>
-    public static void Init(string anonId, string ip, short port, string country, string city)
+    public TelemetrieClient(string anonId, string ip, short port, string country, string city)
     {
-      _session = Guid.NewGuid().ToString("N");
-      _anonId = anonId;
-      _url = $"http://{ip}:{port}/";
-      ChangeLocation(country, city);
-      _device = new Device
+      try
       {
-        Cores = Environment.ProcessorCount,
-        OsVersion = Environment.OSVersion.ToString(),
-        RAM = -1, // ToDo: Aktuell nicht möglich mit .NET Core
-        ScreenResolution = null // ToDo: Aktuell nicht möglich mit .NET Core
-      };
+        _session = Guid.NewGuid().ToString("N");
+        _anonId = anonId;
+        _url = $"http://{ip}:{port}/";
+        ChangeLocation(country, city);
+        _device = new Device
+        {
+          Cores = Environment.ProcessorCount,
+          OsVersion = Environment.OSVersion.ToString(),
+          RAM = -1, // ToDo: Aktuell nicht möglich mit .NET Core
+          ScreenResolution = null // ToDo: Aktuell nicht möglich mit .NET Core
+        };
+      }
+      catch
+      {
+        // ignore
+      }
     }
 
     /// <summary>
-    /// Change current location
+    /// Automatic Flush after these amount (exceptions + metrics + pageViews)
+    /// </summary>
+    public int AutoFlushValue { get; set; } = 50;
+
+    public void Dispose()
+    {
+      Flush();
+    }
+
+    /// <summary>
+    ///   Change current location
     /// </summary>
     /// <param name="country">Country of the user</param>
     /// <param name="city">City of the user</param>
-    public static void ChangeLocation(string country, string city)
+    public void ChangeLocation(string country, string city)
     {
-      _location = new Location { Country = country, City = city };
+      try
+      {
+        _location = new Location { Country = country, City = city };
+      }
+      catch
+      {
+        // ignore
+      }
     }
 
     /// <summary>
-    /// Sends an anonymized crash report
+    ///   Sends an anonymized crash report
     /// </summary>
     /// <param name="exception">Exception</param>
-    public static void SendPublicCrashReport(Exception exception)
+    public void SendPublicCrashReport(Exception exception)
     {
-      var data = GenerateException(exception);
-      // Anonymize
-      data.AnonId = null;
-      data.Location = null;
-      data.Device = null;
-      data.SessionId = null;
-      data.Send(_url, "public/");
+      try
+      {
+        var data = GenerateException(exception);
+        // Anonymize
+        data.AnonId = null;
+        data.Location = null;
+        data.Device = null;
+        data.SessionId = null;
+        data.Send(_url, "crashreport/").Wait();
+      }
+      catch
+      {
+        // ignore
+      }
     }
 
     /// <summary>
-    /// Sends an exception to the telemetrie server
+    ///   Sends an exception to the telemetrie server
     /// </summary>
     /// <param name="exception"></param>
-    public static void SendTelemetrie(Exception exception)
+    public void SendTelemetrie(Exception exception)
+      => SendTelemetrieAsync(exception).Wait();
+
+    /// <summary>
+    ///   Sends an exception to the telemetrie server async
+    /// </summary>
+    /// <param name="exception"></param>
+    public async Task SendTelemetrieAsync(Exception exception)
     {
-      GenerateException(exception).Send(_url, "telemetrie/");
+      try
+      {
+        lock (_queueLock)
+          _exceptions.Enqueue(GenerateException(exception));
+        await CheckFlush();
+      }
+      catch
+      {
+        // ignore
+      }
     }
 
     /// <summary>
-    /// Sends a pageView
+    ///   Sends a pageView
     /// </summary>
     /// <param name="pageView">PageView</param>
-    public static void SendTelemetrie(string pageView)
+    public void SendTelemetrie(string pageView)
+      => SendTelemetrieAsync(pageView);
+
+    /// <summary>
+    ///   Sends a pageView async
+    /// </summary>
+    /// <param name="pageView">PageView</param>
+    public async Task SendTelemetrieAsync(string pageView)
     {
-      new PageView
+      try
       {
-        AnonId = _anonId,
-        Device = _device,
-        EventId = Guid.NewGuid().ToString("N"),
-        EventTime = DateTime.Now,
-        Location = _location,
-        SessionId = _session,
-        Name = pageView
-      }.Send(_url, "telemetrie/");
+        lock (_queueLock)
+          _pageViews.Enqueue(new PageView
+          {
+            AnonId = _anonId,
+            Device = _device,
+            EventId = Guid.NewGuid().ToString("N"),
+            EventTime = DateTime.Now,
+            Location = _location,
+            SessionId = _session,
+            Name = pageView
+          });
+        await CheckFlush();
+      }
+      catch
+      {
+        // ignore
+      }
     }
 
     /// <summary>
-    /// Sends a single metric
+    ///   Sends a single metric
     /// </summary>
     /// <param name="event">Event name</param>
     /// <param name="time">ellapsed time</param>
-    public static void SendTelemetrie(string @event, double time)
+    public void SendTelemetrie(string @event, double time)
+      => SendTelemetrieAsync(@event, time).Wait();
+
+    /// <summary>
+    ///   Sends a single metric async
+    /// </summary>
+    /// <param name="event">Event name</param>
+    /// <param name="time">ellapsed time</param>
+    public async Task SendTelemetrieAsync(string @event, double time)
     {
-      new Metric
+      try
       {
-        AnonId = _anonId,
-        Device = _device,
-        EventId = Guid.NewGuid().ToString("N"),
-        EventTime = DateTime.Now,
-        Location = _location,
-        SessionId = _session,
-        Metrics = new[]{new OpenSourceTelemetrieData.Model.Types.Metric
-        {
-          Key = @event,
-          Value = time
-        }}
-      }.Send(_url, "telemetrie/");
+        lock (_queueLock)
+          _metrics.Enqueue(new Metrics
+          {
+            AnonId = _anonId,
+            Device = _device,
+            EventId = Guid.NewGuid().ToString("N"),
+            EventTime = DateTime.Now,
+            Location = _location,
+            SessionId = _session,
+            Values = new[]
+          {
+            new Metric
+            {
+              Key = @event,
+              Value = time
+            }
+          }
+          });
+        await CheckFlush();
+      }
+      catch
+      {
+        // ignore
+      }
     }
 
     /// <summary>
-    /// Sends multi metrics at once
+    ///   Sends multi metrics at once
     /// </summary>
     /// <param name="multiMetrics">Multi metrics</param>
-    public static void SendTelemetrie(Dictionary<string, double> multiMetrics)
-    {
-      new Metric
-      {
-        AnonId = _anonId,
-        Device = _device,
-        EventId = Guid.NewGuid().ToString("N"),
-        EventTime = DateTime.Now,
-        Location = _location,
-        SessionId = _session,
-        Metrics = GenerateMetrics(multiMetrics)
-      }.Send(_url, "telemetrie/");
-    }
+    public void SendTelemetrie(Dictionary<string, double> multiMetrics)
+      => SendTelemetrieAsync(multiMetrics).Wait();
 
-    private static IList<OpenSourceTelemetrieData.Model.Types.Metric> GenerateMetrics(Dictionary<string, double> multiMetrics)
+    /// <summary>
+    ///   Sends multi metrics at once async
+    /// </summary>
+    /// <param name="multiMetrics">Multi metrics</param>
+    public async Task SendTelemetrieAsync(Dictionary<string, double> multiMetrics)
     {
-      var res = new List<OpenSourceTelemetrieData.Model.Types.Metric>();
-      foreach (var m in multiMetrics)
+      try
       {
-        res.Add(new OpenSourceTelemetrieData.Model.Types.Metric { Key = m.Key, Value = m.Value });
+        lock (_queueLock)
+          _metrics.Enqueue(new Metrics
+          {
+            AnonId = _anonId,
+            Device = _device,
+            EventId = Guid.NewGuid().ToString("N"),
+            EventTime = DateTime.Now,
+            Location = _location,
+            SessionId = _session,
+            Values = GenerateMetrics(multiMetrics)
+          });
+        await CheckFlush();
       }
-      return res;
-    }
-
-    private static OpenSourceTelemetrieData.Model.Exception GenerateException(Exception exception)
-    {
-      return new OpenSourceTelemetrieData.Model.Exception
+      catch
       {
-        AnonId = _anonId,
-        Location = _location,
-        Device = _device,
-        EventId = Guid.NewGuid().ToString("N"),
-        EventTime = DateTime.Now,
-        Name = exception?.GetType().FullName,
-        SessionId = _session,
-        BasicException = GenerateBasicException(exception)
-      };
+        // ignore
+      }
     }
 
-    private static IList<BasicException> GenerateBasicException(Exception exception)
+    private IList<Metric> GenerateMetrics(Dictionary<string, double> multiMetrics)
     {
-      if (exception == null)
+      try
+      {
+        var res = new List<Metric>();
+        foreach (var m in multiMetrics) res.Add(new Metric { Key = m.Key, Value = m.Value });
+
+        return res;
+      }
+      catch
+      {
         return null;
+      }
+    }
 
-      var res = new List<BasicException>
+    private Exceptions GenerateException(Exception exception)
+    {
+      try
       {
-        new BasicException
+        return new Exceptions
         {
-          Assembly = exception.Source,
-          ExceptionType = exception.GetType()?.FullName,
-          Message = exception.Message,
-          StackTrace = exception.StackTrace,
-          Method = exception.TargetSite?.Name
-        }
-      };
+          AnonId = _anonId,
+          Location = _location,
+          Device = _device,
+          EventId = Guid.NewGuid().ToString("N"),
+          EventTime = DateTime.Now,
+          Name = exception?.GetType().FullName,
+          SessionId = _session,
+          Children = GenerateBasicException(exception)
+        };
+      }
+      catch
+      {
+        return null;
+      }
+    }
 
-      if (exception.InnerException != null)
-        res.AddRange(GenerateBasicException(exception.InnerException));
+    private IList<OpenSourceTelemetrieData.Model.Types.Exception> GenerateBasicException(Exception exception)
+    {
+      try
+      {
+        if (exception == null)
+          return null;
 
-      return res;
+        var res = new List<OpenSourceTelemetrieData.Model.Types.Exception>
+        {
+          new OpenSourceTelemetrieData.Model.Types.Exception
+          {
+            Assembly = exception.Source,
+            ExceptionType = exception.GetType()?.FullName,
+            Message = exception.Message,
+            StackTrace = exception.StackTrace,
+            Method = exception.TargetSite?.Name
+          }
+        };
+
+        if (exception.InnerException != null)
+          res.AddRange(GenerateBasicException(exception.InnerException));
+
+        return res;
+      }
+      catch
+      {
+        return null;
+      }
+    }
+
+    /// <summary>
+    /// Sends all waiting telemetric data to the server
+    /// </summary>
+    /// <returns>Task - done?</returns>
+    public async Task Flush()
+    {
+      var tasks = new List<Task>();
+      
+      lock (_queueLock)
+      {
+        while(_metrics.Count > 0)
+          tasks.Add(_metrics.Dequeue().Send(_url, "metric/"));
+        while(_pageViews.Count > 0)
+          tasks.Add(_pageViews.Dequeue().Send(_url, "pageview/"));
+        while (_exceptions.Count > 0)
+          tasks.Add(_exceptions.Dequeue().Send(_url, "exception/"));
+      }
+
+      await Task.WhenAll(tasks);
+    }
+
+    private async Task CheckFlush()
+    {
+      if (_exceptions.Count + _metrics.Count + _pageViews.Count > AutoFlushValue)
+        await Flush();
     }
   }
 }

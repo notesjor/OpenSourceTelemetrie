@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Net;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using OpenSourceTelemetrieData.Model.Types;
 
@@ -29,7 +30,7 @@ namespace OpenSourceTelemetrieData.Model.Abstract
     [JsonProperty("sessionId")]
     public string SessionId { get; set; }
 
-    public void Send(string url, string endpoint)
+    public async Task Send(string url, string endpoint)
     {
       try
       {
@@ -40,9 +41,7 @@ namespace OpenSourceTelemetrieData.Model.Abstract
         using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
           streamWriter.Write(JsonConvert.SerializeObject(this));
 
-        var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
-        using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
-          streamReader.ReadToEnd();
+        await httpWebRequest.GetResponseAsync(); // Die Rückantwort interessiert nicht - fire and forget
       }
       catch
       {
