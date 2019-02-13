@@ -12,7 +12,7 @@ namespace OpenSourceTelemetrieData.Model.Types
     public string OsVersion { get; set; }
 
     [JsonProperty("RAM")]
-    public int RAM { get; set; }
+    public long RAM { get; set; }
 
     [JsonProperty("screenResolution")]
     public ScreenResolution ScreenResolution { get; set; }

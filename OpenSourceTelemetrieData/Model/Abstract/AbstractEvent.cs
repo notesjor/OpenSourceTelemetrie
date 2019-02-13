@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.Net;
 using Newtonsoft.Json;
 using OpenSourceTelemetrieData.Model.Types;
 
@@ -18,22 +20,34 @@ namespace OpenSourceTelemetrieData.Model.Abstract
     [JsonProperty("eventTime")]
     public DateTime EventTime { get; set; }
 
-    [JsonProperty("eventServerTime")]
-    public DateTime EventServerTime { get; set; }
-
     [JsonProperty("location")]
     public Location Location { get; set; }
 
     [JsonProperty("name")]
     public string Name { get; set; }
 
-    [JsonProperty("country")]
-    public string Country { get; set; }
-
-    [JsonProperty("city")]
-    public string City { get; set; }
-
     [JsonProperty("sessionId")]
     public string SessionId { get; set; }
+
+    public void Send(string url, string endpoint)
+    {
+      try
+      {
+        var httpWebRequest = (HttpWebRequest)WebRequest.Create(url + endpoint);
+        httpWebRequest.ContentType = "application/json";
+        httpWebRequest.Method = "POST";
+
+        using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
+          streamWriter.Write(JsonConvert.SerializeObject(this));
+
+        var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
+        using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
+          streamReader.ReadToEnd();
+      }
+      catch
+      {
+        // ignore
+      }
+    }
   }
 }

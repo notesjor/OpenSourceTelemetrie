@@ -8,18 +8,18 @@ using Tfres;
 
 namespace OpenSourceTelemetrieServer
 {
-  class Program
+  public class Program
   {
-    private static readonly int _max = 5 * 1024 * 1024;
+    private static readonly int _max = 64 * 1024 * 1024;
 
-    static void Main(string[] args)
+    public static void Main(params string[] args)
     {
       var ip = GetIp(args);
       var port = GetPort(args);
 
       Console.Write($"OpenSourceTelemetrieServer http://{ip}:{port}...");
 
-      if (Directory.Exists("data"))
+      if (!Directory.Exists("data"))
         Directory.CreateDirectory("data");
 
       var server = new Server(ip, port, DefaultRoute);
@@ -55,7 +55,7 @@ namespace OpenSourceTelemetrieServer
 
     private static HttpResponse StoreData(HttpRequest arg)
     {
-      File.WriteAllText($"data/{Guid.NewGuid():N}.json", arg.PostDataAsString.Replace("[SERVER_TIMESTAMP]", DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")), Encoding.UTF8);
+      File.WriteAllText($"data/{Guid.NewGuid():N}.json", arg.PostDataAsString, Encoding.UTF8);
       return new HttpResponse(arg, true, 200, null, "text/plain", null);
     }
 
