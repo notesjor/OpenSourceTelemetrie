@@ -8,15 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Devart.Data.SQLite.Linq" Version="4.8.1644" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="Devart.Data.Linq">
-      <HintPath>Devart.Data.Linq</HintPath>
-    </Reference>
   </ItemGroup>
 
   <ItemGroup>

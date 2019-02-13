@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<package>
+  <metadata>
+    <!--*-->
+    <id>OpenSourceTelemetricClient.NET4.5.2</id>
+    <!--*-->
+    <version>1.0.0</version>
+    <title>OpenSourceTelemetrieClient452</title>
+    <!--*-->
+    <authors>Jan Oliver Rüdiger</authors>
+    <owners>Jan Oliver Rüdiger</owners>
+    <licenseUrl>https://www.gnu.org/licenses/agpl-3.0.de.html</licenseUrl>
+    <projectUrl>https://github.com/notesjor/OpenSourceTelemetrie</projectUrl>
+    <iconUrl>http://bitcutstudios.com/products/osts/icon.png</iconUrl>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <!--*-->
+    <description>Free and OpenSource telemetric infrastructure based on .NET Core 2.1. Use this nuget package, to send telemetric data to your self hosted server. see (server binaries and documentation): https://github.com/notesjor/OpenSourceTelemetrie</description>
+    <!--*-->
+    <releaseNotes>This is the first release - new features are comming soon - see https://github.com/notesjor/OpenSourceTelemetrie</releaseNotes>
+    <copyright>2019 - Jan Oliver Rüdiger</copyright>
+    <tags> telemetric, telemetrie, insights, monitoring, metrics, REST, metric, diagnostics, telemetry, analytics </tags>
+    <dependencies>
+      <!--
+      <dependency id="SampleDependency" version="1.0" />
+-->
+    </dependencies>
+  </metadata>
+</package>

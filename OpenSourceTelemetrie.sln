@@ -7,9 +7,19 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenSourceTelemetrieServer"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenSourceTelemetrieData", "OpenSourceTelemetrieData\OpenSourceTelemetrieData.csproj", "{54F94AFD-7D62-4237-86A0-39FCB32F3E4D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSourceTelemetrieClient", "OpenSourceTelemetrieClient\OpenSourceTelemetrieClient.csproj", "{08CA3269-94F1-46FB-B8A2-CA48C24C95D6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenSourceTelemetrieClient", "OpenSourceTelemetrieClient\OpenSourceTelemetrieClient.csproj", "{08CA3269-94F1-46FB-B8A2-CA48C24C95D6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSourceTelemetrieTest", "OpenSourceTelemetrieTest\OpenSourceTelemetrieTest.csproj", "{8D88905E-D555-4A51-A639-76F584093570}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenSourceTelemetrieTest", "OpenSourceTelemetrieTest\OpenSourceTelemetrieTest.csproj", "{8D88905E-D555-4A51-A639-76F584093570}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSourceTelemetrieServer452", "OpenSourceTelemetrieServer452\OpenSourceTelemetrieServer452.csproj", "{9C94ED35-00C8-4CD3-9AB0-DD2630BD660E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSourceTelemetrieData452", "OpenSourceTelemetrieData452\OpenSourceTelemetrieData452.csproj", "{618D618A-D438-4A01-A531-3A43CCA3AE94}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{D6ED3C78-B126-4F78-8844-833B02C6A351}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DotNetFramework452", "DotNetFramework452", "{D58FB87A-2D58-4CC6-A05F-EE630E96A74F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSourceTelemetrieClient452", "OpenSourceTelemetrieClient452\OpenSourceTelemetrieClient452.csproj", "{4C443C44-C2FB-400E-969A-EE5A597117F7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,9 +43,30 @@ Global
 		{8D88905E-D555-4A51-A639-76F584093570}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8D88905E-D555-4A51-A639-76F584093570}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8D88905E-D555-4A51-A639-76F584093570}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C94ED35-00C8-4CD3-9AB0-DD2630BD660E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C94ED35-00C8-4CD3-9AB0-DD2630BD660E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C94ED35-00C8-4CD3-9AB0-DD2630BD660E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C94ED35-00C8-4CD3-9AB0-DD2630BD660E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{618D618A-D438-4A01-A531-3A43CCA3AE94}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{618D618A-D438-4A01-A531-3A43CCA3AE94}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{618D618A-D438-4A01-A531-3A43CCA3AE94}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{618D618A-D438-4A01-A531-3A43CCA3AE94}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4C443C44-C2FB-400E-969A-EE5A597117F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4C443C44-C2FB-400E-969A-EE5A597117F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4C443C44-C2FB-400E-969A-EE5A597117F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4C443C44-C2FB-400E-969A-EE5A597117F7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{56D5E348-8DBC-462C-94A8-7F3BEB138A3C} = {D6ED3C78-B126-4F78-8844-833B02C6A351}
+		{54F94AFD-7D62-4237-86A0-39FCB32F3E4D} = {D6ED3C78-B126-4F78-8844-833B02C6A351}
+		{08CA3269-94F1-46FB-B8A2-CA48C24C95D6} = {D6ED3C78-B126-4F78-8844-833B02C6A351}
+		{8D88905E-D555-4A51-A639-76F584093570} = {D6ED3C78-B126-4F78-8844-833B02C6A351}
+		{9C94ED35-00C8-4CD3-9AB0-DD2630BD660E} = {D58FB87A-2D58-4CC6-A05F-EE630E96A74F}
+		{618D618A-D438-4A01-A531-3A43CCA3AE94} = {D58FB87A-2D58-4CC6-A05F-EE630E96A74F}
+		{4C443C44-C2FB-400E-969A-EE5A597117F7} = {D58FB87A-2D58-4CC6-A05F-EE630E96A74F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {151A6D14-D2C2-45F0-AA7B-D357E9D23D99}
