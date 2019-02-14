@@ -8,6 +8,6 @@ namespace OpenSourceTelemetrieData.Model
   public class Metrics : AbstractEvent
   {
     [JsonProperty("values")]
-    public IList<Types.Metric> Values { get; set; }
+    public IList<Metric> Values { get; set; }
   }
 }

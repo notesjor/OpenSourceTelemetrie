@@ -15,9 +15,9 @@ namespace OpenSourceTelemetrieClient
     private readonly Queue<Metrics> _metrics = new Queue<Metrics>();
     private readonly Queue<PageView> _pageViews = new Queue<PageView>();
     private readonly object _queueLock = new object();
-    private Location _location;
     private readonly string _session;
     private readonly string _url;
+    private Location _location;
 
     /// <summary>
     ///   Initialize the TelemetrieClient
@@ -50,13 +50,13 @@ namespace OpenSourceTelemetrieClient
     }
 
     /// <summary>
-    /// Automatic Flush after these amount (exceptions + metrics + pageViews)
+    ///   Automatic Flush after these amount (exceptions + metrics + pageViews)
     /// </summary>
     public int AutoFlushValue { get; set; } = 50;
 
     public void Dispose()
     {
-      Flush();
+      Flush().Wait();
     }
 
     /// <summary>
@@ -68,7 +68,7 @@ namespace OpenSourceTelemetrieClient
     {
       try
       {
-        _location = new Location { Country = country, City = city };
+        _location = new Location {Country = country, City = city};
       }
       catch
       {
@@ -103,7 +103,9 @@ namespace OpenSourceTelemetrieClient
     /// </summary>
     /// <param name="exception"></param>
     public void SendTelemetrie(Exception exception)
-      => SendTelemetrieAsync(exception).Wait();
+    {
+      SendTelemetrieAsync(exception).Wait();
+    }
 
     /// <summary>
     ///   Sends an exception to the telemetrie server async
@@ -114,7 +116,10 @@ namespace OpenSourceTelemetrieClient
       try
       {
         lock (_queueLock)
+        {
           _exceptions.Enqueue(GenerateException(exception));
+        }
+
         await CheckFlush();
       }
       catch
@@ -128,7 +133,9 @@ namespace OpenSourceTelemetrieClient
     /// </summary>
     /// <param name="pageView">PageView</param>
     public void SendTelemetrie(string pageView)
-      => SendTelemetrieAsync(pageView);
+    {
+      SendTelemetrieAsync(pageView).Wait();
+    }
 
     /// <summary>
     ///   Sends a pageView async
@@ -139,6 +146,7 @@ namespace OpenSourceTelemetrieClient
       try
       {
         lock (_queueLock)
+        {
           _pageViews.Enqueue(new PageView
           {
             AnonId = _anonId,
@@ -149,6 +157,8 @@ namespace OpenSourceTelemetrieClient
             SessionId = _session,
             Name = pageView
           });
+        }
+
         await CheckFlush();
       }
       catch
@@ -163,7 +173,9 @@ namespace OpenSourceTelemetrieClient
     /// <param name="event">Event name</param>
     /// <param name="time">ellapsed time</param>
     public void SendTelemetrie(string @event, double time)
-      => SendTelemetrieAsync(@event, time).Wait();
+    {
+      SendTelemetrieAsync(@event, time).Wait();
+    }
 
     /// <summary>
     ///   Sends a single metric async
@@ -175,6 +187,7 @@ namespace OpenSourceTelemetrieClient
       try
       {
         lock (_queueLock)
+        {
           _metrics.Enqueue(new Metrics
           {
             AnonId = _anonId,
@@ -184,14 +197,16 @@ namespace OpenSourceTelemetrieClient
             Location = _location,
             SessionId = _session,
             Values = new[]
-          {
-            new Metric
             {
-              Key = @event,
-              Value = time
+              new Metric
+              {
+                Key = @event,
+                Value = time
+              }
             }
-          }
           });
+        }
+
         await CheckFlush();
       }
       catch
@@ -205,7 +220,9 @@ namespace OpenSourceTelemetrieClient
     /// </summary>
     /// <param name="multiMetrics">Multi metrics</param>
     public void SendTelemetrie(Dictionary<string, double> multiMetrics)
-      => SendTelemetrieAsync(multiMetrics).Wait();
+    {
+      SendTelemetrieAsync(multiMetrics).Wait();
+    }
 
     /// <summary>
     ///   Sends multi metrics at once async
@@ -216,6 +233,7 @@ namespace OpenSourceTelemetrieClient
       try
       {
         lock (_queueLock)
+        {
           _metrics.Enqueue(new Metrics
           {
             AnonId = _anonId,
@@ -226,6 +244,8 @@ namespace OpenSourceTelemetrieClient
             SessionId = _session,
             Values = GenerateMetrics(multiMetrics)
           });
+        }
+
         await CheckFlush();
       }
       catch
@@ -239,7 +259,7 @@ namespace OpenSourceTelemetrieClient
       try
       {
         var res = new List<Metric>();
-        foreach (var m in multiMetrics) res.Add(new Metric { Key = m.Key, Value = m.Value });
+        foreach (var m in multiMetrics) res.Add(new Metric {Key = m.Key, Value = m.Value});
 
         return res;
       }
@@ -302,18 +322,18 @@ namespace OpenSourceTelemetrieClient
     }
 
     /// <summary>
-    /// Sends all waiting telemetric data to the server
+    ///   Sends all waiting telemetric data to the server
     /// </summary>
     /// <returns>Task - done?</returns>
     public async Task Flush()
     {
       var tasks = new List<Task>();
-      
+
       lock (_queueLock)
       {
-        while(_metrics.Count > 0)
+        while (_metrics.Count > 0)
           tasks.Add(_metrics.Dequeue().Send(_url, "metric/"));
-        while(_pageViews.Count > 0)
+        while (_pageViews.Count > 0)
           tasks.Add(_pageViews.Dequeue().Send(_url, "pageview/"));
         while (_exceptions.Count > 0)
           tasks.Add(_exceptions.Dequeue().Send(_url, "exception/"));

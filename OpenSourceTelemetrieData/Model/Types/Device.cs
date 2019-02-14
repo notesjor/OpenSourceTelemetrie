@@ -4,7 +4,6 @@ namespace OpenSourceTelemetrieData.Model.Types
 {
   public class Device
   {
-
     [JsonProperty("Cores")]
     public int Cores { get; set; }
 

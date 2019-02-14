@@ -1,9 +1,6 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
-using OpenSourceTelemetrieData.Model.Types;
 using Tfres;
 
 namespace OpenSourceTelemetrieServer
@@ -48,19 +45,37 @@ namespace OpenSourceTelemetrieServer
     }
 
     private static HttpResponse DefaultRoute(HttpRequest arg)
-      => new HttpResponse(arg, false, 503, null, "text/plain", null);
+    {
+      return new HttpResponse(arg, false, 503, null, "text/plain", null);
+    }
 
-    private static HttpResponse SendCrashReport(HttpRequest arg) 
-      => arg.PostDataAsByteArray.Length > _max ? new HttpResponse(arg, false, 503, null, "text/plain", null) : StoreData(arg, "crashreport");
+    private static HttpResponse SendCrashReport(HttpRequest arg)
+    {
+      return arg.PostDataAsByteArray.Length > _max
+               ? new HttpResponse(arg, false, 503, null, "text/plain", null)
+               : StoreData(arg, "crashreport");
+    }
 
-    private static HttpResponse SendException(HttpRequest arg) 
-      => arg.PostDataAsByteArray.Length > _max ? new HttpResponse(arg, false, 503, null, "text/plain", null) : StoreData(arg, "exception");
+    private static HttpResponse SendException(HttpRequest arg)
+    {
+      return arg.PostDataAsByteArray.Length > _max
+               ? new HttpResponse(arg, false, 503, null, "text/plain", null)
+               : StoreData(arg, "exception");
+    }
 
-    private static HttpResponse SendPageView(HttpRequest arg) 
-      => arg.PostDataAsByteArray.Length > _max ? new HttpResponse(arg, false, 503, null, "text/plain", null) : StoreData(arg, "pageview");
+    private static HttpResponse SendPageView(HttpRequest arg)
+    {
+      return arg.PostDataAsByteArray.Length > _max
+               ? new HttpResponse(arg, false, 503, null, "text/plain", null)
+               : StoreData(arg, "pageview");
+    }
 
     private static HttpResponse SendMetric(HttpRequest arg)
-      => arg.PostDataAsByteArray.Length > _max ? new HttpResponse(arg, false, 503, null, "text/plain", null) : StoreData(arg, "metric");
+    {
+      return arg.PostDataAsByteArray.Length > _max
+               ? new HttpResponse(arg, false, 503, null, "text/plain", null)
+               : StoreData(arg, "metric");
+    }
 
     private static HttpResponse StoreData(HttpRequest arg, string folder)
     {

@@ -34,12 +34,14 @@ namespace OpenSourceTelemetrieData.Model.Abstract
     {
       try
       {
-        var httpWebRequest = (HttpWebRequest)WebRequest.Create(url + endpoint);
+        var httpWebRequest = (HttpWebRequest) WebRequest.Create(url + endpoint);
         httpWebRequest.ContentType = "application/json";
         httpWebRequest.Method = "POST";
 
         using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
+        {
           streamWriter.Write(JsonConvert.SerializeObject(this));
+        }
 
         await httpWebRequest.GetResponseAsync(); // Die Rückantwort interessiert nicht - fire and forget
       }

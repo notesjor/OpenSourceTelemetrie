@@ -4,7 +4,6 @@ namespace OpenSourceTelemetrieData.Model.Types
 {
   public class Metric
   {
-
     [JsonProperty("key")]
     public string Key { get; set; }
 

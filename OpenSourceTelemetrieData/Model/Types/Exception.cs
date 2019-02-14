@@ -1,11 +1,9 @@
-﻿using System.Collections.Generic;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace OpenSourceTelemetrieData.Model.Types
 {
   public class Exception
   {
-
     [JsonProperty("assembly")]
     public string Assembly { get; set; }
 

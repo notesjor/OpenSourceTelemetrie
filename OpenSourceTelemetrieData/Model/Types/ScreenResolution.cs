@@ -4,7 +4,6 @@ namespace OpenSourceTelemetrieData.Model.Types
 {
   public class ScreenResolution
   {
-
     [JsonProperty("Height")]
     public int Height { get; set; }
 

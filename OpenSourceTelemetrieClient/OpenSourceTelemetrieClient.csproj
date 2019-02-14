@@ -11,7 +11,7 @@
     <PackageId>OpenSourceTelemetricClient</PackageId>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <PackageReleaseNotes>This is the first release - new features are comming soon - see https://github.com/notesjor/OpenSourceTelemetrie</PackageReleaseNotes>
-    <Version>1.0.0</Version>
+    <Version>1.0.0.1</Version>
     <PackageLicenseUrl>https://www.gnu.org/licenses/agpl-3.0.de.html</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/notesjor/OpenSourceTelemetrie</PackageProjectUrl>
     <PackageTags>telemetric, telemetrie, insights, monitoring, metrics, REST, metric, diagnostics, telemetry, analytics</PackageTags>

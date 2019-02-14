@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using Newtonsoft.Json;
-using OpenSourceTelemetrieData.Model.Abstract;
-using OpenSourceTelemetrieData.Model.Types;
+﻿using OpenSourceTelemetrieData.Model.Abstract;
 
 namespace OpenSourceTelemetrieData.Model
 {
