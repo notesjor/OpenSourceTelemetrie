@@ -21,6 +21,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DotNetFramework452", "DotNe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSourceTelemetrieClient452", "OpenSourceTelemetrieClient452\OpenSourceTelemetrieClient452.csproj", "{4C443C44-C2FB-400E-969A-EE5A597117F7}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ElasticSearch", "ElasticSearch", "{51D92688-BC95-43B9-A0DB-75A0779EE93D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSourceTelemetrieESearchUpload", "OpenSourceTelemetrieESearchUpload\OpenSourceTelemetrieESearchUpload.csproj", "{1F1FB1F0-44BF-4705-93B5-4DE9682723AE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +59,10 @@ Global
 		{4C443C44-C2FB-400E-969A-EE5A597117F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4C443C44-C2FB-400E-969A-EE5A597117F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4C443C44-C2FB-400E-969A-EE5A597117F7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1F1FB1F0-44BF-4705-93B5-4DE9682723AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1F1FB1F0-44BF-4705-93B5-4DE9682723AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1F1FB1F0-44BF-4705-93B5-4DE9682723AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1F1FB1F0-44BF-4705-93B5-4DE9682723AE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -67,6 +75,7 @@ Global
 		{9C94ED35-00C8-4CD3-9AB0-DD2630BD660E} = {D58FB87A-2D58-4CC6-A05F-EE630E96A74F}
 		{618D618A-D438-4A01-A531-3A43CCA3AE94} = {D58FB87A-2D58-4CC6-A05F-EE630E96A74F}
 		{4C443C44-C2FB-400E-969A-EE5A597117F7} = {D58FB87A-2D58-4CC6-A05F-EE630E96A74F}
+		{1F1FB1F0-44BF-4705-93B5-4DE9682723AE} = {51D92688-BC95-43B9-A0DB-75A0779EE93D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {151A6D14-D2C2-45F0-AA7B-D357E9D23D99}
