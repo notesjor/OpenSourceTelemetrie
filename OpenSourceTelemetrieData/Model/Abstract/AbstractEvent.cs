@@ -37,6 +37,7 @@ namespace OpenSourceTelemetrieData.Model.Abstract
         var httpWebRequest = (HttpWebRequest) WebRequest.Create(url + endpoint);
         httpWebRequest.ContentType = "application/json";
         httpWebRequest.Method = "POST";
+        httpWebRequest.Timeout = 5000;
 
         using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
         {

@@ -392,7 +392,7 @@ namespace OpenSourceTelemetrieClient
     ///   Sends all waiting telemetric data to the server
     /// </summary>
     /// <returns>Task - done?</returns>
-    private void Flush()
+    public void Flush()
     {
       var tasks = new List<Task>();
 
