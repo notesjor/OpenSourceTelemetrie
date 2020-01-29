@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using OpenSourceTelemetrieData.Model;
 using OpenSourceTelemetrieData.Model.Types;
@@ -18,6 +19,7 @@ namespace OpenSourceTelemetrieClient
     private readonly string _session;
     private readonly string _url;
     private Location _location;
+    private Task _flushTask;
 
     /// <summary>
     ///   Initialize the TelemetrieClient
@@ -56,7 +58,7 @@ namespace OpenSourceTelemetrieClient
 
     public void Dispose()
     {
-      Flush().Wait();
+      Flush();
     }
 
     /// <summary>
@@ -68,7 +70,7 @@ namespace OpenSourceTelemetrieClient
     {
       try
       {
-        _location = new Location {Country = country, City = city};
+        _location = new Location { Country = country, City = city };
       }
       catch
       {
@@ -80,7 +82,7 @@ namespace OpenSourceTelemetrieClient
     ///   Sends an anonymized crash report
     /// </summary>
     /// <param name="exception">Exception</param>
-    public void SendPublicCrashReport(Exception exception)
+    public async Task SendPublicCrashReport(Exception exception)
     {
       try
       {
@@ -90,7 +92,7 @@ namespace OpenSourceTelemetrieClient
         data.Location = null;
         data.Device = null;
         data.SessionId = null;
-        data.Send(_url, "crashreport/").Wait();
+        await data.Send(_url, "crashreport/");
       }
       catch
       {
@@ -104,7 +106,19 @@ namespace OpenSourceTelemetrieClient
     /// <param name="exception"></param>
     public void SendTelemetrie(Exception exception)
     {
-      SendTelemetrieAsync(exception).Wait();
+      try
+      {
+        lock (_queueLock)
+        {
+          _exceptions.Enqueue(GenerateException(exception));
+        }
+
+        CheckFlush();
+      }
+      catch
+      {
+        // ignore
+      }
     }
 
     /// <summary>
@@ -115,12 +129,7 @@ namespace OpenSourceTelemetrieClient
     {
       try
       {
-        lock (_queueLock)
-        {
-          _exceptions.Enqueue(GenerateException(exception));
-        }
-
-        await CheckFlush();
+        await GenerateException(exception).Send(_url, "exception/");
       }
       catch
       {
@@ -133,15 +142,6 @@ namespace OpenSourceTelemetrieClient
     /// </summary>
     /// <param name="pageView">PageView</param>
     public void SendTelemetrie(string pageView)
-    {
-      SendTelemetrieAsync(pageView).Wait();
-    }
-
-    /// <summary>
-    ///   Sends a pageView async
-    /// </summary>
-    /// <param name="pageView">PageView</param>
-    public async Task SendTelemetrieAsync(string pageView)
     {
       try
       {
@@ -159,7 +159,32 @@ namespace OpenSourceTelemetrieClient
           });
         }
 
-        await CheckFlush();
+        CheckFlush();
+      }
+      catch
+      {
+        // ignore
+      }
+    }
+
+    /// <summary>
+    ///   Sends a pageView async
+    /// </summary>
+    /// <param name="pageView">PageView</param>
+    public async Task SendTelemetrieAsync(string pageView)
+    {
+      try
+      {
+        await new PageView
+        {
+          AnonId = _anonId,
+          Device = _device,
+          EventId = Guid.NewGuid().ToString("N"),
+          EventTime = DateTime.Now,
+          Location = _location,
+          SessionId = _session,
+          Name = pageView
+        }.Send(_url, "pageview/");
       }
       catch
       {
@@ -173,16 +198,6 @@ namespace OpenSourceTelemetrieClient
     /// <param name="event">Event name</param>
     /// <param name="time">ellapsed time</param>
     public void SendTelemetrie(string @event, double time)
-    {
-      SendTelemetrieAsync(@event, time).Wait();
-    }
-
-    /// <summary>
-    ///   Sends a single metric async
-    /// </summary>
-    /// <param name="event">Event name</param>
-    /// <param name="time">ellapsed time</param>
-    public async Task SendTelemetrieAsync(string @event, double time)
     {
       try
       {
@@ -207,7 +222,40 @@ namespace OpenSourceTelemetrieClient
           });
         }
 
-        await CheckFlush();
+        CheckFlush();
+      }
+      catch
+      {
+        // ignore
+      }
+    }
+
+    /// <summary>
+    ///   Sends a single metric async
+    /// </summary>
+    /// <param name="event">Event name</param>
+    /// <param name="time">ellapsed time</param>
+    public async Task SendTelemetrieAsync(string @event, double time)
+    {
+      try
+      {
+        await new Metrics
+        {
+          AnonId = _anonId,
+          Device = _device,
+          EventId = Guid.NewGuid().ToString("N"),
+          EventTime = DateTime.Now,
+          Location = _location,
+          SessionId = _session,
+          Values = new[]
+          {
+            new Metric
+            {
+              Key = @event,
+              Value = time
+            }
+          }
+        }.Send(_url, "metric/");
       }
       catch
       {
@@ -220,15 +268,6 @@ namespace OpenSourceTelemetrieClient
     /// </summary>
     /// <param name="multiMetrics">Multi metrics</param>
     public void SendTelemetrie(Dictionary<string, double> multiMetrics)
-    {
-      SendTelemetrieAsync(multiMetrics).Wait();
-    }
-
-    /// <summary>
-    ///   Sends multi metrics at once async
-    /// </summary>
-    /// <param name="multiMetrics">Multi metrics</param>
-    public async Task SendTelemetrieAsync(Dictionary<string, double> multiMetrics)
     {
       try
       {
@@ -246,7 +285,32 @@ namespace OpenSourceTelemetrieClient
           });
         }
 
-        await CheckFlush();
+        CheckFlush();
+      }
+      catch
+      {
+        // ignore
+      }
+    }
+
+    /// <summary>
+    ///   Sends multi metrics at once async
+    /// </summary>
+    /// <param name="multiMetrics">Multi metrics</param>
+    public async Task SendTelemetrieAsync(Dictionary<string, double> multiMetrics)
+    {
+      try
+      {
+        await new Metrics
+        {
+          AnonId = _anonId,
+          Device = _device,
+          EventId = Guid.NewGuid().ToString("N"),
+          EventTime = DateTime.Now,
+          Location = _location,
+          SessionId = _session,
+          Values = GenerateMetrics(multiMetrics)
+        }.Send(_url, "metric/");
       }
       catch
       {
@@ -258,10 +322,7 @@ namespace OpenSourceTelemetrieClient
     {
       try
       {
-        var res = new List<Metric>();
-        foreach (var m in multiMetrics) res.Add(new Metric {Key = m.Key, Value = m.Value});
-
-        return res;
+        return multiMetrics.Select(m => new Metric { Key = m.Key, Value = m.Value }).ToList();
       }
       catch
       {
@@ -321,11 +382,17 @@ namespace OpenSourceTelemetrieClient
       }
     }
 
+    private void CheckFlush()
+    {
+      if (_exceptions.Count + _metrics.Count + _pageViews.Count > AutoFlushValue)
+        Flush();
+    }
+
     /// <summary>
     ///   Sends all waiting telemetric data to the server
     /// </summary>
     /// <returns>Task - done?</returns>
-    public async Task Flush()
+    private void Flush()
     {
       var tasks = new List<Task>();
 
@@ -339,13 +406,10 @@ namespace OpenSourceTelemetrieClient
           tasks.Add(_exceptions.Dequeue().Send(_url, "exception/"));
       }
 
-      await Task.WhenAll(tasks);
-    }
+      if (_flushTask != null && _flushTask.Status == TaskStatus.Running)
+        _flushTask.Wait();
 
-    private async Task CheckFlush()
-    {
-      if (_exceptions.Count + _metrics.Count + _pageViews.Count > AutoFlushValue)
-        await Flush();
+      _flushTask = Task.WhenAll(tasks);
     }
   }
 }

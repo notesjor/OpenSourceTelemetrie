@@ -43,7 +43,7 @@ namespace OpenSourceTelemetrieData.Model.Abstract
           streamWriter.Write(JsonConvert.SerializeObject(this));
         }
 
-        await httpWebRequest.GetResponseAsync(); // Die Rückantwort interessiert nicht - fire and forget
+        await httpWebRequest.GetResponseAsync();
       }
       catch
       {

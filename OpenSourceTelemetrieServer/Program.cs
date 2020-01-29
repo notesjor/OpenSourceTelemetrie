@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
+using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 using Tfres;
 
 namespace OpenSourceTelemetrieServer
@@ -44,49 +46,53 @@ namespace OpenSourceTelemetrieServer
       server.Dispose();
     }
 
-    private static HttpResponse DefaultRoute(HttpRequest arg)
+    private static Task DefaultRoute(HttpContext arg)
     {
-      return new HttpResponse(arg, false, 503, null, "text/plain", null);
+      return arg.Response.Send(HttpStatusCode.NotFound);
     }
 
-    private static HttpResponse SendCrashReport(HttpRequest arg)
+    private static Task SendCrashReport(HttpContext arg)
     {
-      return arg.PostDataAsByteArray.Length > _max
-               ? new HttpResponse(arg, false, 503, null, "text/plain", null)
-               : StoreData(arg, "crashreport");
+      var text = arg.Request.PostDataAsString;
+      return text.Length > _max 
+               ? arg.Response.Send(HttpStatusCode.InternalServerError) 
+               : StoreData(text, arg, "crashreport");
     }
 
-    private static HttpResponse SendException(HttpRequest arg)
+    private static Task SendException(HttpContext arg)
     {
-      return arg.PostDataAsByteArray.Length > _max
-               ? new HttpResponse(arg, false, 503, null, "text/plain", null)
-               : StoreData(arg, "exception");
+      var text = arg.Request.PostDataAsString;
+      return text.Length > _max
+               ? arg.Response.Send(HttpStatusCode.InternalServerError)
+               : StoreData(text, arg, "exception");
     }
 
-    private static HttpResponse SendPageView(HttpRequest arg)
+    private static Task SendPageView(HttpContext arg)
     {
-      return arg.PostDataAsByteArray.Length > _max
-               ? new HttpResponse(arg, false, 503, null, "text/plain", null)
-               : StoreData(arg, "pageview");
+      var text = arg.Request.PostDataAsString;
+      return text.Length > _max
+               ? arg.Response.Send(HttpStatusCode.InternalServerError)
+               : StoreData(text, arg, "pageview");
     }
 
-    private static HttpResponse SendMetric(HttpRequest arg)
+    private static Task SendMetric(HttpContext arg)
     {
-      return arg.PostDataAsByteArray.Length > _max
-               ? new HttpResponse(arg, false, 503, null, "text/plain", null)
-               : StoreData(arg, "metric");
+      var text = arg.Request.PostDataAsString;
+      return text.Length > _max
+               ? arg.Response.Send(HttpStatusCode.InternalServerError)
+               : StoreData(text, arg, "metric");
     }
 
-    private static HttpResponse StoreData(HttpRequest arg, string folder)
+    private static Task StoreData(string text, HttpContext context, string folder)
     {
       try
       {
-        File.WriteAllText($"data/{folder}/{Guid.NewGuid():N}.json", arg.PostDataAsString, Encoding.UTF8);
-        return new HttpResponse(arg, true, 200, null, "text/plain", null);
+        File.WriteAllText($"data/{folder}/{Guid.NewGuid():N}.json", text, Encoding.UTF8);
+        return context.Response.Send(200);
       }
       catch
       {
-        return new HttpResponse(arg, false, 503, null, "text/plain", null);
+        return context.Response.Send(500);
       }
     }
 
