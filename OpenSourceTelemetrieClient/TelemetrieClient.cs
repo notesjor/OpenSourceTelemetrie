@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,18 +9,13 @@ using Exception = System.Exception;
 
 namespace OpenSourceTelemetrieClient
 {
-  public class TelemetrieClient : IDisposable
+  public class TelemetrieClient
   {
     private readonly string _anonId;
     private readonly Device _device;
-    private readonly Queue<Exceptions> _exceptions = new Queue<Exceptions>();
-    private readonly Queue<Metrics> _metrics = new Queue<Metrics>();
-    private readonly Queue<PageView> _pageViews = new Queue<PageView>();
-    private readonly object _queueLock = new object();
     private readonly string _session;
     private readonly string _url;
     private Location _location;
-    private Task _flushTask;
 
     /// <summary>
     ///   Initialize the TelemetrieClient
@@ -49,16 +45,6 @@ namespace OpenSourceTelemetrieClient
       {
         // ignore
       }
-    }
-
-    /// <summary>
-    ///   Automatic Flush after these amount (exceptions + metrics + pageViews)
-    /// </summary>
-    public int AutoFlushValue { get; set; } = 50;
-
-    public void Dispose()
-    {
-      Flush();
     }
 
     /// <summary>
@@ -108,28 +94,7 @@ namespace OpenSourceTelemetrieClient
     {
       try
       {
-        lock (_queueLock)
-        {
-          _exceptions.Enqueue(GenerateException(exception));
-        }
-
-        CheckFlush();
-      }
-      catch
-      {
-        // ignore
-      }
-    }
-
-    /// <summary>
-    ///   Sends an exception to the telemetrie server async
-    /// </summary>
-    /// <param name="exception"></param>
-    public async Task SendTelemetrieAsync(Exception exception)
-    {
-      try
-      {
-        await GenerateException(exception).Send(_url, "exception/");
+        GenerateException(exception)?.Send(_url, "exception/");
       }
       catch
       {
@@ -145,37 +110,7 @@ namespace OpenSourceTelemetrieClient
     {
       try
       {
-        lock (_queueLock)
-        {
-          _pageViews.Enqueue(new PageView
-          {
-            AnonId = _anonId,
-            Device = _device,
-            EventId = Guid.NewGuid().ToString("N"),
-            EventTime = DateTime.Now,
-            Location = _location,
-            SessionId = _session,
-            Name = pageView
-          });
-        }
-
-        CheckFlush();
-      }
-      catch
-      {
-        // ignore
-      }
-    }
-
-    /// <summary>
-    ///   Sends a pageView async
-    /// </summary>
-    /// <param name="pageView">PageView</param>
-    public async Task SendTelemetrieAsync(string pageView)
-    {
-      try
-      {
-        await new PageView
+        new PageView
         {
           AnonId = _anonId,
           Device = _device,
@@ -184,7 +119,7 @@ namespace OpenSourceTelemetrieClient
           Location = _location,
           SessionId = _session,
           Name = pageView
-        }.Send(_url, "pageview/");
+        }?.Send(_url, "pageview/");
       }
       catch
       {
@@ -201,45 +136,7 @@ namespace OpenSourceTelemetrieClient
     {
       try
       {
-        lock (_queueLock)
-        {
-          _metrics.Enqueue(new Metrics
-          {
-            AnonId = _anonId,
-            Device = _device,
-            EventId = Guid.NewGuid().ToString("N"),
-            EventTime = DateTime.Now,
-            Location = _location,
-            SessionId = _session,
-            Values = new[]
-            {
-              new Metric
-              {
-                Key = @event,
-                Value = time
-              }
-            }
-          });
-        }
-
-        CheckFlush();
-      }
-      catch
-      {
-        // ignore
-      }
-    }
-
-    /// <summary>
-    ///   Sends a single metric async
-    /// </summary>
-    /// <param name="event">Event name</param>
-    /// <param name="time">ellapsed time</param>
-    public async Task SendTelemetrieAsync(string @event, double time)
-    {
-      try
-      {
-        await new Metrics
+        new Metrics
         {
           AnonId = _anonId,
           Device = _device,
@@ -255,7 +152,7 @@ namespace OpenSourceTelemetrieClient
               Value = time
             }
           }
-        }.Send(_url, "metric/");
+        }?.Send(_url, "metric/");
       }
       catch
       {
@@ -271,21 +168,16 @@ namespace OpenSourceTelemetrieClient
     {
       try
       {
-        lock (_queueLock)
+        new Metrics
         {
-          _metrics.Enqueue(new Metrics
-          {
-            AnonId = _anonId,
-            Device = _device,
-            EventId = Guid.NewGuid().ToString("N"),
-            EventTime = DateTime.Now,
-            Location = _location,
-            SessionId = _session,
-            Values = GenerateMetrics(multiMetrics)
-          });
-        }
-
-        CheckFlush();
+          AnonId = _anonId,
+          Device = _device,
+          EventId = Guid.NewGuid().ToString("N"),
+          EventTime = DateTime.Now,
+          Location = _location,
+          SessionId = _session,
+          Values = GenerateMetrics(multiMetrics)
+        }?.Send(_url, "metric/");
       }
       catch
       {
@@ -380,36 +272,6 @@ namespace OpenSourceTelemetrieClient
       {
         return null;
       }
-    }
-
-    private void CheckFlush()
-    {
-      if (_exceptions.Count + _metrics.Count + _pageViews.Count > AutoFlushValue)
-        Flush();
-    }
-
-    /// <summary>
-    ///   Sends all waiting telemetric data to the server
-    /// </summary>
-    /// <returns>Task - done?</returns>
-    public void Flush()
-    {
-      var tasks = new List<Task>();
-
-      lock (_queueLock)
-      {
-        while (_metrics.Count > 0)
-          tasks.Add(_metrics.Dequeue().Send(_url, "metric/"));
-        while (_pageViews.Count > 0)
-          tasks.Add(_pageViews.Dequeue().Send(_url, "pageview/"));
-        while (_exceptions.Count > 0)
-          tasks.Add(_exceptions.Dequeue().Send(_url, "exception/"));
-      }
-
-      if (_flushTask != null && _flushTask.Status == TaskStatus.Running)
-        _flushTask.Wait();
-
-      _flushTask = Task.WhenAll(tasks);
     }
   }
 }
